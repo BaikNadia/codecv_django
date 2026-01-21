@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru" class="{% if request.user.cv_profile.theme %}{{ request.user.cv_profile.theme }}{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CodeCV{% endblock %}</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'github-dark': '#0d1117',
+                        'github-light': '#ffffff',
+                        'primary': '#238636',
+                        'secondary': '#2ea043',
+                    },
+                    fontFamily: {
+                        'mono': ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.2/dist/cdn.min.js"></script>
+
+    <style>
+        .github-dark { @apply bg-[#0d1117] text-gray-100; }
+        .github-light { @apply bg-white text-gray-900; }
+        .dracula { @apply bg-[#282a36] text-[#f8f8f2]; }
+        .nord { @apply bg-[#2e3440] text-[#d8dee9]; }
+
+        .skill-bar {
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen transition-colors duration-300">
+    {% include 'partials/navbar.html' %}
+
+    <main class="container mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include 'partials/footer.html' %}
+</body>
+</html>
