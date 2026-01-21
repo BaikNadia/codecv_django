@@ -5,16 +5,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", False) == "True"
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
@@ -28,13 +22,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Сторонние приложения
+
     "rest_framework",
     "django_htmx",
     "crispy_forms",
     "crispy_tailwind",
     "corsheaders",
-    # Наши приложения
+
     "cvbuilder",
     "users",
     "api",
@@ -77,7 +71,6 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 # Database
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
@@ -98,8 +91,6 @@ DATABASES = {
 
 
 # Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -135,7 +126,18 @@ STATICFILES_DIRS = [BASE_DIR / "frontend/static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Папка для загрузки аватаров
+AVATAR_UPLOAD_PATH = 'avatars/'
+
+# Настройки для загрузки файлов
+MAX_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB для аватаров
+FILE_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_SIZE
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB для данных
+
+# Допустимые типы файлов
+ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp']
 
 # Crispy Forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
@@ -162,8 +164,3 @@ GITHUB_API_TOKEN = os.getenv("GITHUB_API_TOKEN", default="")
 # Celery
 CELERY_BROKER_URL = os.getenv("REDIS_URL", default="redis://localhost:6379/0")
 
-if DEBUG:
-
-    from django.conf.urls.static import static
-
-    urlpatterns = []
