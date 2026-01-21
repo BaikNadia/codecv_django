@@ -1,16 +1,22 @@
-from django.contrib.auth.decorators import login_required
+# from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+# from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+# from django.core.files.storage import FileSystemStorage
+import os
 
 from .github_integration import GitHubAPI
 from .models import CVProfile, Skill
 from .serializers import CVProfileSerializer, GitHubSyncSerializer, SkillSerializer
+
 
 # ==================== Django View Functions ====================
 
@@ -37,18 +43,45 @@ def cv_edit(request):
     """Редактирование резюме"""
     profile, created = CVProfile.objects.get_or_create(user=request.user)
 
-    if request.method == "POST":
-        profile.github_username = request.POST.get("github_username", "")
-        profile.bio = request.POST.get("bio", "")
-        profile.headline = request.POST.get("headline", "")
-        profile.location = request.POST.get("location", "")
-        profile.website = request.POST.get("website", "")
-        profile.theme = request.POST.get("theme", "github-dark")
-        profile.save()
+    if request.method == 'POST':
+        # Обработка формы
+        profile.github_username = request.POST.get('github_username', '')
+        profile.bio = request.POST.get('bio', '')
+        profile.headline = request.POST.get('headline', '')
+        profile.location = request.POST.get('location', '')
+        profile.website = request.POST.get('website', '')
+        profile.theme = request.POST.get('theme', 'github-dark')
+        profile.is_public = request.POST.get('is_public') == 'true'
 
-        return redirect("cv_detail", username=request.user.username)
+        # Обработка аватара
+        if 'avatar' in request.FILES:
+            avatar = request.FILES['avatar']
+            # Проверка размера файла
+            if avatar.size > 2 * 1024 * 1024:  # 2MB
+                messages.error(request, 'Файл слишком большой. Максимальный размер: 2MB')
+            else:
+                # Сохраняем файл
+                profile.avatar = avatar
+                messages.success(request, 'Аватар успешно загружен')
 
-    return render(request, "cvbuilder/cv_edit.html", {"profile": profile})
+        # Удаление аватара
+        if request.POST.get('avatar-clear'):
+            if profile.avatar:
+                # Удаляем файл с диска
+                if os.path.isfile(profile.avatar.path):
+                    os.remove(profile.avatar.path)
+                profile.avatar.delete(save=False)
+                profile.avatar = None
+                messages.success(request, 'Аватар удален')
+
+        try:
+            profile.save()
+            messages.success(request, 'Профиль успешно сохранен')
+            return redirect('cv_detail', username=request.user.username)
+        except Exception as e:
+            messages.error(request, f'Ошибка сохранения: {str(e)}')
+
+    return render(request, 'cvbuilder/cv_edit.html', {'profile': profile})
 
 
 @login_required
